@@ -119,7 +119,7 @@
       // render our insideList todos to the page for each item in the array
       for (var i = 0; i < insideList.length; i++) {
         var p = $("<p>").text("   " + insideList[i]);
-        var b = $("<button class='reAdd'>").text("+ ↑").attr("data-index", i);
+        var b = $("<button class='reAdd'>").text("← +").attr("data-index", i);
         p.prepend(b);
         $("#completed-list").prepend(p);
       }
