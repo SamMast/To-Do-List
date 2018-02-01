@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Local Storage To-Do List</title>
+  <link href="https://fonts.googleapis.com/css?family=Coming+Soon|Rock+Salt|Shadows+Into+Light+Two" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
@@ -12,22 +13,47 @@
 
   <header class="row">
     <h1 class="jumbotron jumbotron-fluid">
-      To-Do List:
+      Personal To-Do List :
       <hr class="my-4">
-      <p id="info" class="col-xs-4 col-sm-4 col-md-4 col-lg-4 lead">(Persisted with Local Storage)</p>
-      <form class=" lead col-xs-4 col-xs-offset-4 col-sm-4 col-sm-offset-4 col-md-4 col-md-offset-4 col-lg-4 col-lg-offset-4">
-        <input type="text">
-        <input type="submit" value="Add Item" class="btn btn-info">
+      <p id="info" class="col-xs-5 col-sm-5 col-md-5 col-lg-5 lead">(with Local Storage)</p>
+      <form class="lead col-xs-5 col-xs-offset-2 col-sm-5 col-sm-offset-2 col-md-5 col-md-offset-2 col-lg-5 col-lg-offset-2" id="addNew">
+        <input type="text" id="buttonInput">
+        <input type="submit" value="Add Item" class="btn btn-info" id="button">
       </form>
     </h1>
 
   </header>
 
-  <div class="panel panel-info">
+  <div class="row">
 
-    <p class="col-xs-12 col-sm-12 col-md-12 col-lg-12 panel-heading">Add and remove to-do list items as needed</p>
-    <div id="todo-list" class="row panel-body"></div>
+    <div class="col-sm-7 col-md-7 col-xs-7 col-lg-7">
 
+      <div class="panel panel-info">
+        <p class="col-xs-12 col-sm-12 col-md-12 col-lg-12 panel-heading" id="instructions">Add and remove to-do list items as needed</p>
+        <div id="todo-list" class="row panel-body"></div>
+      </div>
+
+    </div>
+
+    <div class="col-sm-4 col-md-4 col-xs-4 col-lg-4">
+
+      <div class="panel panel-default" id="completedSection">      
+        <div class="panel-heading col-xs-12 col-sm-12 col-md-12 col-lg-12" id="completed">
+          Completed Items:
+          <button id="clearButton" class="btn btn-default" type="clear">
+            <div class="glyphicon glyphicon-trash"></div>
+            CLEAR Completed
+          </button>
+        </div>         
+        <div id="completed-list" class="panel-body"></div>
+      </div>  
+
+    </div>
+
+  </div>
+
+  <div>
+    <footer class="col-md-12 col-lg-12 col-sm-12 col-xs-12 text-center navbar-fixed-bottom" id="footer">Copyright @ 2018 - Samuel Mast</footer>
   </div>
 
   <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
@@ -36,12 +62,24 @@
     //global list, set to take to local storage and parse into an array
     var list = JSON.parse(localStorage.getItem("todolist"));
 
+    var doneList = JSON.parse(localStorage.getItem("completedlist"));
+
     // Checks to see if the todolist exists in localStorage and is an array currently
     // If not, set a local list variable to an empty array
     // Otherwise list is our current list of todos
     if (!Array.isArray(list)) {
       list = [];
     }
+
+    if (!Array.isArray(doneList)) {
+      doneList = [];
+    }
+
+    // if (doneList) {
+    //   $("#completedSection").hide();
+    // } else {
+    //   $("#completedSection").show();
+    // }
 
     function putOnPage() {
 
@@ -58,15 +96,40 @@
 
       // render our insideList todos to the page for each item in the array
       for (var i = 0; i < insideList.length; i++) {
-        var p = $("<p>").text(insideList[i]);
+        var p = $("<p>").text("   " + insideList[i]);
         var b = $("<button class='delete'>").text("✔").attr("data-index", i);
         p.prepend(b);
         $("#todo-list").prepend(p);
       }
     }
 
+    function putOnCompleted() {
+
+      $("#completed-list").empty(); // empties out the html
+
+      var insideList = JSON.parse(localStorage.getItem("completedlist"));
+
+      // Checks to see if we have any todos in localStorage
+      // If we do, set the local insideList variable to our todos
+      // Otherwise set the local insideList variable to an empty array
+      if (!Array.isArray(insideList)) {
+        insideList = [];
+      }
+
+      // render our insideList todos to the page for each item in the array
+      for (var i = 0; i < insideList.length; i++) {
+        var p = $("<p>").text("   " + insideList[i]);
+        var b = $("<button class='reAdd'>").text("+ ↑").attr("data-index", i);
+        p.prepend(b);
+        $("#completed-list").prepend(p);
+      }
+    }
+
+
     // render our todos currently in the list array on page load
     putOnPage();
+
+    putOnCompleted();
 
     //on click of delete button(checkbox)
     $(document).on("click", "button.delete", function() {
@@ -77,16 +140,54 @@
       //set new var for index of what you clicked
       var currentIndex = $(this).attr("data-index");
 
+      var val = todolist[currentIndex];
+      doneList.push(val);
+      console.log(doneList);
+
       // Deletes the item marked for deletion and updates initial list
       todolist.splice(currentIndex, 1);
       list = todolist;
 
       //updates local storage to new list
       localStorage.setItem("todolist", JSON.stringify(todolist));
+      localStorage.setItem("completedlist", JSON.stringify(doneList));
 
       //puts new list on page (which is list minus item you removed)
       putOnPage();
+      putOnCompleted();
+
+      $("#completedSection").show();
+
     });
+
+
+    //on click of delete button(checkbox)
+    $(document).on("click", "button.reAdd", function() {
+
+      //set new var to the todolist items (which is a parsed version of the list in local storage)
+      var completedlist = JSON.parse(localStorage.getItem("completedlist"));
+
+      //set new var for index of what you clicked
+      var currentIndex = $(this).attr("data-index");
+
+      var val = completedlist[currentIndex];
+      list.push(val);
+      console.log(list);
+
+      // Deletes the item marked for deletion and updates initial list
+      completedlist.splice(currentIndex, 1);
+      doneList = completedlist;
+
+      //updates local storage to new list
+      localStorage.setItem("completedlist", JSON.stringify(completedlist));
+      localStorage.setItem("todolist", JSON.stringify(list));
+
+      //puts new list on page (which is list minus item you removed)
+      putOnCompleted();
+      putOnPage();
+
+    });
+
 
 
     $("input[type='submit']").on("click", function(event) {
@@ -102,6 +203,24 @@
 
       //puts new list array on the page
       putOnPage();
+    });
+
+
+
+    $("#clearButton").on("click", function(event) {
+      event.preventDefault();
+
+      // Adding our new todo to our local list array, and then updating it to local storage
+      doneList = [];
+      console.log(doneList)
+      localStorage.setItem("completedlist", JSON.stringify(doneList));
+
+      //puts new list array on the page
+      putOnPage();
+      putOnCompleted();
+
+      $("#completedSection").hide();
+
     });
   </script>
 </body>
